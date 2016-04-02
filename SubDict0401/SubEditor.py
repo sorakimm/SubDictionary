@@ -1,0 +1,286 @@
+#-*- coding:cp949-*-
+from bs4 import BeautifulSoup
+#from django.utils.encoding import smart_str, smart_unicode
+from urllib import *
+import urllib.robotparser
+from ctypes import *  
+import urllib
+import time, traceback, re, os
+import sqlite3
+import codecs
+import cgi
+import sys
+import konlpy
+import pprint
+import nltk
+from konlpy.tag import Komoran
+from konlpy.tag import Twitter
+from nltk.tokenize import RegexpTokenizer
+from SubDB import *
+tokenizer = None
+tagger = None
+
+dir = './smi/'
+
+
+def allFiles(dir):
+    tempFileList = []
+    filenames = os.listdir(dir)
+    for filename in filenames:
+        full_filename = os.path.join(dir, filename)
+        tempFileList.append(full_filename)
+
+    
+    return tempFileList
+
+def checkKREN(contents):
+    "´Ù¿î¹ÞÀº smi ÆÄÀÏÀÌ Á¤»óÀÎÁö Ã¼Å©"
+    fileList = []
+    
+    contents = contents.decode('cp949')
+    pKRCC = re.compile(r'<P Class=KRCC>', re.IGNORECASE)
+    pENCC = re.compile(r'<P Class=ENCC>', re.IGNORECASE)
+    
+    #print (contents)
+    try:
+       if(bool(re.search(pKRCC, contents))):
+            if(bool(re.search(pENCC, contents))):
+                return True
+        
+       else:
+            print ("File contents error!!!")
+            return False
+    except:
+        print ("File import error!!!")
+        return False
+
+
+def sortTXT(contentsList): 
+    "smiÆÄÀÏ³»¿ë Á¤·Ä"
+    contents = contentsList[1][:]
+    contents = contents.decode('cp949')
+    #contents = contentstemp
+    #print (contents)
+    pStyle = re.compile('<br>', re.IGNORECASE | re.MULTILINE | re.DOTALL)
+    contents = pStyle.sub(' ', contents)
+    pStyle = re.compile('<font color=.*?>', re.IGNORECASE)
+    contents = pStyle.sub(' ', contents)
+    pStyle = re.compile('</font>', re.IGNORECASE)
+    contents = pStyle.sub(' ', contents)
+    pStyle = re.compile('<HEAD(.*?)>(.*?)</HEAD>', re.IGNORECASE | re.MULTILINE | re.DOTALL)
+    contents = pStyle.sub('', contents)
+    pStyle = re.compile('<!--(.*?)-->', re.IGNORECASE | re.MULTILINE | re.DOTALL)
+    contents = pStyle.sub('', contents)
+    pStyle = re.compile('<br>', re.IGNORECASE | re.MULTILINE | re.DOTALL)
+    contents = pStyle.sub(' ', contents)
+    pStyle = re.compile('<SAMI>', re.IGNORECASE | re.MULTILINE | re.DOTALL)
+    contents = pStyle.sub('', contents)
+    pStyle = re.compile('<BODY>', re.IGNORECASE | re.MULTILINE | re.DOTALL)
+    contents = pStyle.sub('', contents)
+    pStyle = re.compile('</SAMI>', re.IGNORECASE | re.MULTILINE | re.DOTALL)
+    contents = pStyle.sub('', contents)
+    pStyle = re.compile('</BODY>', re.IGNORECASE | re.MULTILINE | re.DOTALL)
+    contents = pStyle.sub('', contents)
+    pStyle = re.compile('<i>', re.IGNORECASE | re.MULTILINE | re.DOTALL)
+    contents = pStyle.sub('', contents)
+    pStyle = re.compile('</i>', re.IGNORECASE | re.MULTILINE | re.DOTALL)
+    contents = pStyle.sub('', contents)
+    #print (contents)
+    pStyle = re.compile(r'<SYNC Start=\d+><P Class=KRCC>&nbsp;')
+    contents = pStyle.sub('', contents)
+    pStyle = re.compile(r'<SYNC Start=\d+><P Class=ENCC>&nbsp;')
+    contents = pStyle.sub('', contents)
+
+    pStyle = re.compile(r'( \r\n{1}$\r\n)', re.IGNORECASE | re.MULTILINE | re.DOTALL)
+    contents = pStyle.sub(r'', contents)
+    #print (contents)
+    pStyle = re.compile(r'( \r\n{2,})', re.IGNORECASE | re.MULTILINE | re.DOTALL)
+    contents = pStyle.sub(r'\r\n', contents)
+
+    
+    
+    #print (contents)
+    pStyle = re.compile(r'\n$', re.IGNORECASE | re.MULTILINE | re.DOTALL)
+    contents = pStyle.sub(r'', contents)
+    #print (contents)
+    pStyle = re.compile(r' {2,}', re.MULTILINE | re.DOTALL)
+    contents = pStyle.sub(r' ', contents)
+    pStyle = re.compile(r'\r\n', re.IGNORECASE | re.MULTILINE | re.DOTALL)
+    contents = pStyle.sub(r'', contents)
+
+   
+
+    #print (contents)
+    #print ("------------")
+    contentsKRTemp = []
+    contentsENTemp = []
+    contentsKR = []
+    contentsEN = []
+    pStyleKR = re.compile(r'<SYNC Start=(\d+)><P Class=KRCC>(.+?)<', re.IGNORECASE | re.MULTILINE | re.DOTALL)
+    pStyleEN = re.compile(r'<SYNC Start=(\d+)><P Class=ENCC>(.+?)<', re.IGNORECASE | re.MULTILINE | re.DOTALL)
+    contentsKRTemp = pStyleKR.findall(contents)
+    contentsENTemp = pStyleEN.findall(contents)
+    
+   
+    #print (contentsKRTemp)
+    #pTime = re.compile(r'\S{2}\Z')   
+    pTime = re.compile('[0-9]{2}\Z')
+
+    for i in range(0, len(contentsKRTemp)):
+        contentsKR.append(list(contentsKRTemp[i]))
+        contentsKR[i][0] = pTime.sub('', contentsKR[i][0])
+        #smart_str(contentsKR[i][1])
+        #print (contentsKR[i][0])
+        #print (contentsKR[i][1])
+            
+    for i in range(0, len(contentsENTemp)):
+        contentsEN.append(list(contentsENTemp[i]))
+        contentsEN[i][0] = pTime.sub('', contentsEN[i][0])
+   
+    #print (contentsKR[0][1])
+    #print contentsEN
+    oneTotalSubList = joinKREN(contentsKR, contentsEN)
+    #pprint.pprint(oneTotalSubList)
+    return oneTotalSubList
+    
+
+def joinKREN(list_kr, list_en):
+   
+    totalSubList = []
+    totalSubListTemp = []
+    totalSubListTemp2 = []
+   
+    if (len(list_kr) <= len(list_en)):
+        for i in range(0, len(list_kr)):
+            for j in range(0, len(list_en)):
+                if(list_kr[i][0] != list_en[j][0]):
+                    pass
+                else:
+                    totalSubListTemp.insert(0, list_kr[i][0])
+                    totalSubListTemp.insert(1, list_en[j][1])
+                    totalSubListTemp.insert(2, list_kr[i][1])
+                    totalSubList.append(list(totalSubListTemp[0:3]))
+                    break
+    else:
+        for i in range(0, len(list_en)):
+            for j in range(0, len(list_kr)):
+                if(list_en[i][0] != list_kr[j][0]):
+                    pass
+                else:
+                    totalSubListTemp.insert(0, list_en[i][0])
+                    totalSubListTemp.insert(1, list_en[i][1])
+                    totalSubListTemp.insert(2, list_kr[j][1])
+                    totalSubList.append(list(totalSubListTemp[0:3]))
+  
+    return totalSubList
+ 
+def makeFileName(_FileList):
+    mkFileNameList = _FileList[:]
+    pStyle = re.compile('./smi/')
+    for i in range(0, len(FileList)):
+        mkFileNameList[i] = pStyle.sub('', mkFileNameList[i])
+        
+    return mkFileNameList
+
+
+def collectWord(body):#ÅÂ±×¾ø¾Ø content¿¡¼­ ¸í»ç¸¸ ÃßÃâÇÏ±â
+    contents = body[:]
+    
+    contents = re.sub('[^°¡-ÆR \n]+', '', contents)
+    #print (contents)
+   
+    kkma = konlpy.tag.Kkma() #-Xmx128m ·Î ¹Ù²Ù±â
+    #print("Get nouns from contents...")
+    keywords = kkma.nouns(contents)
+    #print (type(keywords))
+    #print ("kkma   : ", keywords)
+
+    return keywords
+    
+def getEngNoun(contents):
+    tokenizer = RegexpTokenizer("[\w']+")
+    keywords = tokenizer.tokenize(contents)
+    pStyle = re.compile("'")
+    for i in range(0, len(keywords)):
+        keywords[i] = pStyle.sub("''", keywords[i])
+    #print ("keywords : ", keywords)
+    return keywords
+
+def FillSpacePacket(dataLen, index):
+    """ÆÐÅ¶ÀÇ ÀÚ¸´¼ö¸¦ Ã¤¿ö¾ß ÇÒ¶§ °ø¹é(' ')À¸·Î ºó°ø°£À» Ã¤¿öÁÜ
+    dataLen : ºÐ¼®À» ¿øÇÏ´Â º¯¼öÀÇ ±æÀÌ
+    index : space·Î Ã¤¿ï ÀÎµ¦½º ÃÖ´ë°ª
+    ex)
+    data = 'abcd'
+    data += FillSpacePacket(data.__len__(), 5)
+    print(data)
+    °á°ú : 'abcd  '
+    ºóÄ­ µÎ°³ »ý¼º"""
+    index += 1
+    space = ''
+    if dataLen < index:
+        for count in range(0, index-dataLen):
+            space += ' '
+    return space
+
+def isASCII(text): 
+   """ASCII¹®ÀÚÀÎÁö ÆÇº°. text¿¡ ASCII°¡ ¾Æ´Ñ ¹®ÀÚ°¡ ÇÑ°³¶óµµ ÀÖÀ¸¸é False, ¾øÀ¸¸é True"""
+   return not bool(re.search('[^\x00-\x7E]', text))
+
+def __Len_Cstyle__(text):
+   """text¸¦ C ½ºÅ¸ÀÏ ±æÀÌ·Î ±¸ÇÔ"""
+   CLen = 0
+   for i in text:
+      if isASCII(i):
+         CLen += 1
+      else: CLen += 2
+   return CLen
+   
+if __name__ == '__main__':
+    print ('starting SubEditor.py...')
+    totalSubList = []
+    oneTotalSubList= []
+    fileNameList = []
+    #openFile()
+    sendSubList = []
+    sendSubListTemp = []
+    tempFileList = allFiles(dir)
+    
+    FileList = checkKREN(tempFileList)
+    fileNameList = makeFileName(FileList)
+    #print (fileNameList)
+    for i in range(0, len(FileList)):
+        oneTotalSubList = sortTXT(FileList[i])
+        
+        for j in range(0, len(oneTotalSubList)):
+            sendTitle = fileNameList[i]
+            pStyle = re.compile(".smi")
+            sendTitle = pStyle.sub('', sendTitle)
+            sendEN = oneTotalSubList[j][1]
+           
+            sendKO = oneTotalSubList[j][2]
+            #print ("sendEN : ", sendEN)
+            sendENKeywords = getEngNoun(sendEN)
+            sendENKeywordsLen = len(sendENKeywords)
+
+            sendKOKeywords = collectWord(sendKO)
+            sendKOKeywordsLen = len(sendKOKeywords)
+
+            pStyle = re.compile("'")
+            sendEN = pStyle.sub("''", sendEN)
+            sendKO = pStyle.sub("''", sendKO)
+
+            sendSubList.insert(0, sendTitle) # 0 : Å¸ÀÌÆ²
+            sendSubList.insert(1, sendEN) # 1 : ¿µ¹®Àå
+            sendSubList.insert(2, sendKO) # 2 : ÇÑ±¹¾î¹®Àå
+            sendSubList.insert(3, sendENKeywordsLen+sendKOKeywordsLen) # 3 : ¿µ´Ü¾î+ÇÑ´Ü¾î °³¼ö                
+            for k in range(4, 4+sendENKeywordsLen):
+                sendSubList.insert(k, sendENKeywords[k-4])
+                
+            for k in range(0, sendKOKeywordsLen):
+                sendSubList.insert(k+4+sendENKeywordsLen, sendKOKeywords[k])
+           
+            sendSubtitle(sendSubList)       
+    #pprint.pprint (sendSubList)
+
+    #sendPacket(sendList)
