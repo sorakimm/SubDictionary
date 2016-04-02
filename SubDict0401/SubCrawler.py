@@ -30,8 +30,9 @@ rp.read()
 
 ##############################################################
 # SOCKET NETWORKING
-HOST = '127.0.0.1'                # The remote host
-PORT = 10001        # The same port as used by the server
+HOST = '192.168.0.185'                # The remote host
+#HOST = '127.0.0.1'
+PORT = 10000        # The same port as used by the server
 s = socket.socket()
 ##############################################################
 
@@ -62,7 +63,7 @@ def getGomAllBoardPageURL(lastpage):
     
 def getGomTitleLink(url):
     print ("getGomTitleLink Start!")
-    url = ['http://gom.gomtv.com/main/index.html?ch=subtitles&pt=l&menu=subtitles&lang=3&page=1&md5key=']
+    #url = ['http://gom.gomtv.com/main/index.html?ch=subtitles&pt=l&menu=subtitles&lang=3&page=1&md5key=']
     for u in range(0, len(url)):
         time.sleep(1)
         gomPageTemp = urllib.request.urlopen(url[u]).read()
@@ -172,12 +173,30 @@ def contentsEditSend(contentsList):
     if(contentsList == 0) :
             print ("FileName - ",contentsList[0], " contents Error!")
     else:
-        if(SubEditor.checkKREN(contentsList[1]) == True):        # 자막 정렬
+        if(SubEditor.checkKREN(str(contentsList[1])) == True):        # 자막 정렬
             oneSortedSubList = SubEditor.sortTXT(contentsList)
             for j in range(0, len(oneSortedSubList)):
                 sendTitle = contentsList[0]
                 pStyle = re.compile(".smi")
                 sendTitle = pStyle.sub('', sendTitle)
+                pStyle = re.compile(r"720p.*", re.IGNORECASE)
+                sendTitle = pStyle.sub('', sendTitle)
+                pStyle = re.compile(r"고화질", re.IGNORECASE)
+                sendTitle = pStyle.sub('', sendTitle)
+                pStyle = re.compile(r"BDRip", re.IGNORECASE)
+                sendTitle = pStyle.sub('', sendTitle)
+                pStyle = re.compile(r"HD.*", re.IGNORECASE)
+                sendTitle = pStyle.sub('', sendTitle)
+                pStyle = re.compile(r"1080p.*", re.IGNORECASE)
+                sendTitle = pStyle.sub('', sendTitle)
+                pStyle = re.compile(r"[*.-/(/)/]", re.IGNORECASE)
+                sendTitle = pStyle.sub('', sendTitle)
+                pStyle = re.compile(r" ", re.IGNORECASE)
+                sendTitle = pStyle.sub('', sendTitle)
+                pStyle = re.compile(r"\.", re.IGNORECASE)
+                sendTitle = pStyle.sub('', sendTitle)
+                
+                print ("sendTitle: ", sendTitle)
                 sendEN = oneSortedSubList[j][1]
            
                 sendKO = oneSortedSubList[j][2]
@@ -185,7 +204,7 @@ def contentsEditSend(contentsList):
                 sendENKeywords = SubEditor.getEngNoun(sendEN)
                 sendENKeywordsLen = len(sendENKeywords)
 
-                sendKOKeywords = SubEditor.collectWord(sendKO)
+                sendKOKeywords = SubEditor.getKorNoun(sendKO)
                 sendKOKeywordsLen = len(sendKOKeywords)
 
                 pStyle = re.compile("'")
@@ -221,7 +240,7 @@ class AllStatesFetched(Exception):
 if __name__ == '__main__':
     print ('starting Gom Crawl.py...')
     lastBoardNum = getGomLastBoard(gom_mainBoardPage)
-    lastBoardNum = 10
+    lastBoardNum = 3
     print ("lastBoardNum : ", lastBoardNum)
     pageURLList = []
     pageURLList = getGomAllBoardPageURL(lastBoardNum)
@@ -229,36 +248,36 @@ if __name__ == '__main__':
     getGomTitleLink(pageURLList)
     
     titleList = []
-    #while True:
-    #    db.connect(HOST, PORT)
-    #    db.reqURL() # titleURL 요청
-    #    db.closesocket()
+    while True:
+        db.connect(HOST, PORT)
+        db.reqURL() # titleURL 요청
+        db.closesocket()
         
-    #    db.connect(HOST, PORT) 
-    #    titleURL = db.recvURL()
-    #    db.closesocket()
+        db.connect(HOST, PORT) 
+        titleURL = db.recvURL()
+        db.closesocket()
 
-    #    if(len(titleURL) == 0): # 가져온 titleURL의 길이가 0일 때 (받은 패킷의 URL 길이가 0이면 종료)
-    #        break;
-    #    titleList.append(titleURL)
+        if(len(titleURL) == 0): # 가져온 titleURL의 길이가 0일 때 (받은 패킷의 URL 길이가 0이면 종료)
+            break;
+        titleList.append(titleURL)
     
-    titleList = ['http://gom.gomtv.com/main/index.html?ch=subtitles&pt=v&menu=subtitles&seq=908441&prepage=5&md5key=&md5skey=', 'http://gom.gomtv.com/main/index.html?ch=subtitles&pt=v&menu=subtitles&seq=907827&prepage=7&md5key=&md5skey=']
+    #titleList = ['http://gom.gomtv.com/main/index.html?ch=subtitles&pt=v&menu=subtitles&seq=910618&prepage=1&md5key=&md5skey=']
     #print (titleList[0])
     
-    #for i in range(0, len(titleList)):
-    #    contentsList = getGomDownLink(titleList[i])
-    #    contentsEditSend(contentsList)
+    for i in range(0, len(titleList)):
+        contentsList = getGomDownLink(titleList[i])
+        contentsEditSend(contentsList)
                        
     while 1:
         print ("checkUpdatedDownURL START! ")
         #updatedTitleList = []    
         time.sleep(100)
         #updatedTitleList = checkUpdatedDownURL()  
-        updatedTitleList = ['http://gom.gomtv.com/main/index.html?ch=subtitles&pt=v&menu=subtitles&seq=908441&prepage=5&md5key=&md5skey=', 'http://gom.gomtv.com/main/index.html?ch=subtitles&pt=v&menu=subtitles&seq=907827&prepage=7&md5key=&md5skey=']
+        #updatedTitleList = ['http://gom.gomtv.com/main/index.html?ch=subtitles&pt=v&menu=subtitles&seq=908441&prepage=5&md5key=&md5skey=', 'http://gom.gomtv.com/main/index.html?ch=subtitles&pt=v&menu=subtitles&seq=907827&prepage=7&md5key=&md5skey=']
     
         for i in range(0, len(updatedTitleList)):
             updatedContentsList = getGomDownLink(updatedTitleList[i])
             contentsEditSend(updatedContentsList)    
       
-    #s.close()          
+        
             

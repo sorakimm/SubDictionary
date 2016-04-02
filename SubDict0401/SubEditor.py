@@ -37,7 +37,7 @@ def checkKREN(contents):
     "´Ù¿î¹ÞÀº smi ÆÄÀÏÀÌ Á¤»óÀÎÁö Ã¼Å©"
     fileList = []
     
-    contents = contents.decode('cp949')
+    #contents = contents.decode('cp949')
     pKRCC = re.compile(r'<P Class=KRCC>', re.IGNORECASE)
     pENCC = re.compile(r'<P Class=ENCC>', re.IGNORECASE)
     
@@ -106,7 +106,7 @@ def sortTXT(contentsList):
     pStyle = re.compile(r' {2,}', re.MULTILINE | re.DOTALL)
     contents = pStyle.sub(r' ', contents)
     pStyle = re.compile(r'\r\n', re.IGNORECASE | re.MULTILINE | re.DOTALL)
-    contents = pStyle.sub(r'', contents)
+    contents = pStyle.sub(r' ', contents)
 
    
 
@@ -183,7 +183,7 @@ def makeFileName(_FileList):
     return mkFileNameList
 
 
-def collectWord(body):#ÅÂ±×¾ø¾Ø content¿¡¼­ ¸í»ç¸¸ ÃßÃâÇÏ±â
+def getKorNoun(body):#ÅÂ±×¾ø¾Ø content¿¡¼­ ¸í»ç¸¸ ÃßÃâÇÏ±â
     contents = body[:]
     
     contents = re.sub('[^°¡-ÆR \n]+', '', contents)
@@ -194,16 +194,25 @@ def collectWord(body):#ÅÂ±×¾ø¾Ø content¿¡¼­ ¸í»ç¸¸ ÃßÃâÇÏ±â
     keywords = kkma.nouns(contents)
     #print (type(keywords))
     #print ("kkma   : ", keywords)
-
+    pSub = re.compile("sub_")
+    for i in range(0, len(keywords)):
+        keywords[i] = re.sub(keywords[i], "sub_"+str(keywords[i]), keywords[i])
+    keywords = list(set(keywords))
+    print ("Keywords : ", keywords)
     return keywords
     
 def getEngNoun(contents):
     tokenizer = RegexpTokenizer("[\w']+")
     keywords = tokenizer.tokenize(contents)
     pStyle = re.compile("'")
+    pStyle2 = re.compile(r"\.")
+    #pSub = re.compile("sub_")
     for i in range(0, len(keywords)):
-        keywords[i] = pStyle.sub("''", keywords[i])
-    #print ("keywords : ", keywords)
+        keywords[i] = pStyle.sub("", keywords[i])
+        keywords[i] = pStyle2.sub("", keywords[i])
+        keywords[i] = re.sub(keywords[i], "sub_"+str(keywords[i]), keywords[i])
+    keywords = list(set(keywords))
+    print ("keywords : ", keywords)
     return keywords
 
 def FillSpacePacket(dataLen, index):
@@ -263,7 +272,7 @@ if __name__ == '__main__':
             sendENKeywords = getEngNoun(sendEN)
             sendENKeywordsLen = len(sendENKeywords)
 
-            sendKOKeywords = collectWord(sendKO)
+            sendKOKeywords = getKorNoun(sendKO)
             sendKOKeywordsLen = len(sendKOKeywords)
 
             pStyle = re.compile("'")
@@ -281,6 +290,6 @@ if __name__ == '__main__':
                 sendSubList.insert(k+4+sendENKeywordsLen, sendKOKeywords[k])
            
             sendSubtitle(sendSubList)       
-    #pprint.pprint (sendSubList)
+    #pprint.pprint (sendTitle)
 
     #sendPacket(sendList)

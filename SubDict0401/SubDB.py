@@ -126,7 +126,7 @@ class SubDB():
         f.write("\n")
         f.close()
         #pprint.pprint (sendData.decode('cp949'))
-        pprint.pprint (sendSubList[0])
+        #pprint.pprint (sendSubList[0])
         s.sendall(sendData)
         
     def sendURL(self, sendURLList):
@@ -227,6 +227,7 @@ class SubDB():
      
         return b_url
 
+    # ¡÷¿«
     def reqSUB(self, word):
         reqWordLen = __Len_Cstyle__(word)          
         data += sType['B_C_REQ_WORD']
