@@ -119,13 +119,8 @@ class SubDB():
         sendData += dataLen
         sendData += data
         sendData = sendData.encode('cp949')
-        f = open('./smi/edit.txt', 'a')
-        f.write(sendSubList[0])
-        f.write("\n")
-        f.write(sendData.decode('cp949'))
-        f.write("\n")
-        f.close()
-        #pprint.pprint (sendData.decode('cp949'))
+      
+        pprint.pprint (sendData.decode('cp949'))
         #pprint.pprint (sendSubList[0])
         s.sendall(sendData)
         
@@ -164,6 +159,7 @@ class SubDB():
         
     
     def reqURL(self):
+        print("reqURL!")
         data = ''
         dataLen = ''
         sendData = ''
@@ -181,6 +177,7 @@ class SubDB():
         sendData += data
         sendData = sendData.encode('cp949')
         
+        print ("send req url data")
         s.sendall(sendData)
    
     def recvURL(self):

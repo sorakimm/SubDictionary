@@ -131,7 +131,8 @@ def getGomDownLink(url):
 
         
 def checkUpdatedDownURL():
-    time.sleep(10)
+    print("checkUpdatedDownURL")
+    time.sleep(10000)
     page = 1
     check_cnt = 0
     temp = 0
@@ -145,9 +146,6 @@ def checkUpdatedDownURL():
         while True:
             db.connect(HOST, PORT)
             db.reqURL() # titleURL 요청
-            db.closesocket()
-            
-            db.connect(HOST, PORT) 
             updatedTitleURL = db.recvURL()
             db.closesocket()
 
@@ -182,6 +180,8 @@ def contentsEditSend(contentsList):
                 pStyle = re.compile(r"720p.*", re.IGNORECASE)
                 sendTitle = pStyle.sub('', sendTitle)
                 pStyle = re.compile(r"고화질", re.IGNORECASE)
+                sendTitle = pStyle.sub('', sendTitle)
+                pStyle = re.compile(r"무삭제", re.IGNORECASE)
                 sendTitle = pStyle.sub('', sendTitle)
                 pStyle = re.compile(r"BDRip", re.IGNORECASE)
                 sendTitle = pStyle.sub('', sendTitle)
@@ -222,6 +222,7 @@ def contentsEditSend(contentsList):
                     sendSubList.insert(k+4+sendENKeywordsLen, sendKOKeywords[k])
                 
                 db.connect(HOST, PORT)
+                print("sendSubtitle!")
                 db.sendSubtitle(sendSubList)
                 db.closesocket()
 
@@ -251,9 +252,6 @@ if __name__ == '__main__':
     while True:
         db.connect(HOST, PORT)
         db.reqURL() # titleURL 요청
-        db.closesocket()
-        
-        db.connect(HOST, PORT) 
         titleURL = db.recvURL()
         db.closesocket()
 
