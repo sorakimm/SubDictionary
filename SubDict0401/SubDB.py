@@ -26,7 +26,7 @@ def FillSpacePacket(dataLen, index):
 
 def isASCII(text): 
    """ASCII문자인지 판별. text에 ASCII가 아닌 문자가 한개라도 있으면 False, 없으면 True"""
-   return not bool(re.search('[^\x00-\x7E]', text))
+   return not bool(re.search('[^\x00-\x7F]', text))
 
 def __Len_Cstyle__(text):
    """text를 C 스타일 길이로 구함"""
@@ -128,8 +128,15 @@ class SubDB():
         sendData = sendData.encode('cp949')
       
         pprint.pprint (sendData.decode('cp949'))
+
+        f = open('./smi/edit2.txt', 'a')
+        f.write(sendData.decode('cp949'))
+        f.write('\n\n')
+        f.close()
+
+
         #pprint.pprint (sendSubList[0])
-        #s.sendall(sendData)
+        s.sendall(sendData)
         
     def sendURL(self, sendURLList):
         data = ''
@@ -231,142 +238,4 @@ class SubDB():
      
         return b_url
 
-    # 주의
-    def reqSUB(self, word):
-        reqWordLen = __Len_Cstyle__(word)          
-        data += sType['B_C_REQ_WORD']
-        data += '\0'
-        data += FillSpacePacket(data.__len__(), 3)
-       
-        data += str(reqWordLen)
-        data += '\0'
-        data += FillSpacePacket(data.__len__(), 7+4)
-        data += word
-        
-        dataLen = __Len_Cstyle__(data) + 8
-        dataLen = str(dataLen)
-        dataLen += '\0'
-        dataLen += FillSpacePacket(dataLen.__len__(), 7)
-        sendData += dataLen
-        sendData += data
-        sendData = sendData.encode('cp949')
-        
-        s.sendall(sendData)
-
-        # 주의!
-    def recvSUB(self, mode):
-        s_wordLen = ''
-        s_word = ''
-        s_titleLen = ''
-        s_title = ''
-        s_engLen = ''
-        s_eng = ''
-        s_korLen = ''
-        s_kor = ''
-        s_list = []
-        data = s.recv(1024)
-        data = data.decode('cp949')
-             
-        if not data:
-            print ("no data received")
-            pass
-
-        print ('Received----------', data)
-        b_listTemp = []
-        
-        for i in range(12, 15):
-            if(data[i] != '\0'):
-                s_wordLen += data[i]
-        
-        s_wordLen = int(s_wordLen)
-        offset = 16
-
-        for i in range(16, 16+s_wordLen-1):
-            if(data[i] != '\0'):
-                offset += 1
-                s_word += data[i]
-
-     
-        for i in range(offset, offset+3):
-            if(data[i] != '\0'):
-                s_titleLen += data[i]
-        
-        s_titleLen = int(s_titleLen)
-        offset += 4
-        
-        for i in range(offset, offset+s_titleLen-1):
-            if(data[i] != '\0'):
-                offset += 1
-                s_title += data[i]             
-        
-        
-
-        for i in range(offset, offset+3):
-            if(data[i] != '\0'):
-                s_engLen += data[i]
-        
-        s_engLen = int(s_engLen)
-        offset += 4
-        
-        for i in range(offset, offset+s_engLen-1):
-            if(data[i] != '\0'):
-                offset += 1
-                s_eng += data[i]             
-        
-       
-        
-        for i in range(offset, offset+3):
-            if(data[i] != '\0'):
-                s_korLen += data[i]
-        
-        s_korLen = int(s_korLen)
-        offset += 4
-        
-        for i in range(offset, offset+s_korLen-1):
-            if(data[i] != '\0'):
-                offset += 1
-                s_kor += data[i]             
-        
-      
-        #print ("s_word : ", s_word)
-        #print ("s_title : ", s_title)
-        #print ("s_eng : ", s_eng)
-        #print ("s_kor : ", s_kor)
-        
-        # 검색 결과 리스트 만들기
-        s_result = [s_title, s_eng, s_kor]
-
-        return s_result
-
-    def recvSUBNum(self):
-        s_totalSize = ''
-        s_packettype = ''
-        s_num = ''
-        data = s.recv(1024)
-        data = data.decode('cp949')
-             
-        if not data:
-            print ("no subnum data received")
-            pass
-
-        print ('Received URL----------', data)
-        
-        for i in range(0, 7):
-            if(data[i] != '\0'):
-                s_totalSize += data[i]
-
-        for i in range(8, 11):
-            if(data[i] != '\0'):
-                s_packettype += data[i]
-
-        for i in range(12, 15):
-            if(data[i] != '\0'):
-                s_num += data[i]
-
-        s_totalSize = int(s_totalSize)
-        s_packettype = int(s_packettype)
-        s_num = int(s_num)
-
-        s_numResult = [s_totalSize, s_packettype, s_num]
-        return s_num
-       
+   

@@ -88,6 +88,7 @@ def getGomTitleLink(url):
             sTitleURLList.insert(0, sType['B_C_NOTIFY_SUBURL'])
             sTitleURLList.insert(1, str(len(titleURL)))
             sTitleURLList.insert(2, titleURL)
+            time.sleep(0.1)
             db.connect(HOST, PORT)
             db.sendURL(sTitleURLList)
             db.closesocket()
@@ -151,10 +152,12 @@ def checkUpdatedDownURL():
         #print "check page : ", page
         updatedPageURL = gom_gomMainPage + gom_searchMainBoard + str(page)
         getGomTitleLink(updatedPageURL)
+        recvURLNum = 0
         while True:
             db.connect(HOST, PORT)
             db.reqURL() # titleURL 요청
             updatedTitleURL = db.recvURL()
+
             db.closesocket()
 
             if(len(updatedTitleURL) == 0): # 가져온 titleURL의 길이가 0일 때 (받은 패킷의 URL 길이가 0이면 종료)
@@ -232,12 +235,12 @@ def contentsEditSend(contentsList):
                 for k in range(0, sendKOKeywordsLen):
                     sendSubList.insert(k+4+sendENKeywordsLen, sendKOKeywords[k])
                 
-                #db.connect(HOST, PORT)
+                time.sleep(0.5)
+                db.connect(HOST, PORT)
                 print("sendSubtitle!")
                 db.sendSubtitle(sendSubList)
-                #db.closesocket()
-                time.sleep(0.1)
-
+                db.closesocket()
+                
         else:
             print ("Wrong KREN SMI")
    
@@ -256,38 +259,39 @@ if __name__ == '__main__':
     lastBoardNum = 3
     print ("lastBoardNum : ", lastBoardNum)
     pageURLList = []
-    #pageURLList = getGomAllBoardPageURL(lastBoardNum)
+    pageURLList = getGomAllBoardPageURL(lastBoardNum)
      
-    #getGomTitleLink(pageURLList)
+    getGomTitleLink(pageURLList)
     
     titleList = []
-    #while True:
-    #    db.connect(HOST, PORT)
-    #    db.reqURL() # titleURL 요청
-    #    titleURL = db.recvURL()
-    #    db.closesocket()
+    while True:
+        time.sleep(0.5)
+        db.connect(HOST, PORT)
+        db.reqURL() # titleURL 요청
+        titleURL = db.recvURL()
+        db.closesocket()
 
-    #    if(len(titleURL) == 0): # 가져온 titleURL의 길이가 0일 때 (받은 패킷의 URL 길이가 0이면 종료)
-    #        break;
-    #    titleList.append(titleURL)
-    titleList = [
+        if(len(titleURL) == 0): # 가져온 titleURL의 길이가 0일 때 (받은 패킷의 URL 길이가 0이면 종료)
+            break;
+        titleList.append(titleURL)
+    #titleList = [
                  #'http://gom.gomtv.com/main/index.html?ch=subtitles&pt=v&menu=subtitles&seq=910913&prepage=1&md5key=&md5skey=',
                  #'http://gom.gomtv.com/main/index.html?ch=subtitles&pt=v&menu=subtitles&seq=910903&prepage=1&md5key=&md5skey=',
                  #'http://gom.gomtv.com/main/index.html?ch=subtitles&pt=v&menu=subtitles&seq=910882&prepage=1&md5key=&md5skey=',
                  #'http://gom.gomtv.com/main/index.html?ch=subtitles&pt=v&menu=subtitles&seq=910844&prepage=1&md5key=&md5skey=',
-                 'http://gom.gomtv.com/main/index.html?ch=subtitles&pt=v&menu=subtitles&seq=910834&prepage=1&md5key=&md5skey='                 
-                 ]
+                 #'http://gom.gomtv.com/main/index.html?ch=subtitles&pt=v&menu=subtitles&seq=910834&prepage=1&md5key=&md5skey='                 
+               #  ]
     #print (titleList[0])
-    
+    #titleList = ['http://gom.gomtv.com/main/index.html?ch=subtitles&pt=v&menu=subtitles&seq=911016&prepage=1&md5key=&md5skey=']
     for i in range(0, len(titleList)):
         contentsList = getGomDownLink(titleList[i])
         contentsEditSend(contentsList)
                        
     while 1:
         print ("checkUpdatedDownURL START! ")
-        #updatedTitleList = []    
+        updatedTitleList = []    
         time.sleep(100)
-        #updatedTitleList = checkUpdatedDownURL()  
+        updatedTitleList = checkUpdatedDownURL()  
         #updatedTitleList = ['http://gom.gomtv.com/main/index.html?ch=subtitles&pt=v&menu=subtitles&seq=908441&prepage=5&md5key=&md5skey=', 'http://gom.gomtv.com/main/index.html?ch=subtitles&pt=v&menu=subtitles&seq=907827&prepage=7&md5key=&md5skey=']
     
         for i in range(0, len(updatedTitleList)):

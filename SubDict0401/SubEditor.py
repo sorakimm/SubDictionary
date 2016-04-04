@@ -131,7 +131,7 @@ def sortTXT(contentsList):
     pTime = re.compile('[0-9]{2}\Z')
 
     for i in range(0, len(contentsKRTemp)):
-        print ("contentskrtemp")
+        #print ("contentskrtemp")
         #if(contentsKRTemp[i][1] == '  '):
         #    continue;
         #contentsKRTemp[i][1] = str(contentsKRTemp[i][1]).strip()
