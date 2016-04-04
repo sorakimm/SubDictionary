@@ -184,7 +184,7 @@ def contentsEditSend(contentsList):
     else:
         if(SubEditor.checkKREN(str(contentsList[1])) == True):        # 자막 정렬
             oneSortedSubList = SubEditor.sortTXT(contentsList)
-            for j in range(0, len(oneSortedSubList)):
+            for j in range(0, len(oneSortedSubList)-1):
                 sendTitle = contentsList[0]
                 pStyle = re.compile(".smi")
                 sendTitle = pStyle.sub('', sendTitle)
@@ -209,11 +209,23 @@ def contentsEditSend(contentsList):
                 pStyle = re.compile(r"\.", re.IGNORECASE)
                 sendTitle = pStyle.sub('_', sendTitle)
                 
+                pRmvSpace = re.compile("  ")
                 print ("sendTitle: ", sendTitle)
                 sendEN = oneSortedSubList[j][1]
                 sendEN = sendEN.strip()
+                sendEN = pRmvSpace.sub(" ", sendEN)
                 sendKO = oneSortedSubList[j][2]
                 sendKO = sendKO.strip()
+                sendKO = pRmvSpace.sub(" ", sendKO)
+                if(len(sendEN) == 0):
+                    print("len(sendEN) is null")
+                    continue
+                if(len(sendKO) == 0):
+                    print("len(sendKO) IS NULL")
+                    continue
+                if(sendEN == sendKO):
+                    continue
+
                 #print ("sendEN : ", sendEN)
                 sendENKeywords = SubEditor.getEngNoun(sendEN)
                 sendENKeywordsLen = len(sendENKeywords)
@@ -236,10 +248,14 @@ def contentsEditSend(contentsList):
                     sendSubList.insert(k+4+sendENKeywordsLen, sendKOKeywords[k])
                 
                 time.sleep(0.5)
-                db.connect(HOST, PORT)
-                print("sendSubtitle!")
-                db.sendSubtitle(sendSubList)
-                db.closesocket()
+                #db.connect(HOST, PORT)
+                #print("sendSubtitle!")
+                if(len(sendSubList) == 0):
+                    print ("SendSubList Null!")
+                else:
+                    print("db.sendSubTitle(sendSubList");
+                    db.sendSubtitle(sendSubList)
+                #db.closesocket()
                 
         else:
             print ("Wrong KREN SMI")
@@ -260,27 +276,28 @@ if __name__ == '__main__':
     print ("lastBoardNum : ", lastBoardNum)
     pageURLList = []
     pageURLList = getGomAllBoardPageURL(lastBoardNum)
-     
-    getGomTitleLink(pageURLList)
-    
     titleList = []
-    while True:
-        time.sleep(0.5)
-        db.connect(HOST, PORT)
-        db.reqURL() # titleURL 요청
-        titleURL = db.recvURL()
-        db.closesocket()
+     
+    #getGomTitleLink(pageURLList)
+    
+    #while True:
+    #    time.sleep(0.5)
+    #    db.connect(HOST, PORT)
+    #    db.reqURL() # titleURL 요청
+    #    titleURL = db.recvURL()
+    #    db.closesocket()
 
-        if(len(titleURL) == 0): # 가져온 titleURL의 길이가 0일 때 (받은 패킷의 URL 길이가 0이면 종료)
-            break;
-        titleList.append(titleURL)
-    #titleList = [
-                 #'http://gom.gomtv.com/main/index.html?ch=subtitles&pt=v&menu=subtitles&seq=910913&prepage=1&md5key=&md5skey=',
+    #    if(len(titleURL) == 0): # 가져온 titleURL의 길이가 0일 때 (받은 패킷의 URL 길이가 0이면 종료)
+    #        break;
+    #    titleList.append(titleURL)
+
+    titleList = [
+                  'http://gom.gomtv.com/main/index.html?ch=subtitles&pt=v&menu=subtitles&seq=910913&prepage=1&md5key=&md5skey=',
                  #'http://gom.gomtv.com/main/index.html?ch=subtitles&pt=v&menu=subtitles&seq=910903&prepage=1&md5key=&md5skey=',
                  #'http://gom.gomtv.com/main/index.html?ch=subtitles&pt=v&menu=subtitles&seq=910882&prepage=1&md5key=&md5skey=',
                  #'http://gom.gomtv.com/main/index.html?ch=subtitles&pt=v&menu=subtitles&seq=910844&prepage=1&md5key=&md5skey=',
-                 #'http://gom.gomtv.com/main/index.html?ch=subtitles&pt=v&menu=subtitles&seq=910834&prepage=1&md5key=&md5skey='                 
-               #  ]
+                # 'http://gom.gomtv.com/main/index.html?ch=subtitles&pt=v&menu=subtitles&seq=910834&prepage=1&md5key=&md5skey='                 
+                ]
     #print (titleList[0])
     #titleList = ['http://gom.gomtv.com/main/index.html?ch=subtitles&pt=v&menu=subtitles&seq=911016&prepage=1&md5key=&md5skey=']
     for i in range(0, len(titleList)):

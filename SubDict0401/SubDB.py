@@ -60,14 +60,14 @@ class SubDB():
         subEnLen = 0
         subKOLen = 0
         wordNumLen = 0
-        
+        data2 = ''
         titleLen = __Len_Cstyle__(sendSubList[0])
         
         subENLen = __Len_Cstyle__(sendSubList[1])
         
         subKOLen = __Len_Cstyle__(sendSubList[2])
         
-        wordNumLen = __Len_Cstyle__(str(sendSubList[3]))
+        #wordNumLen = __Len_Cstyle__(str(sendSubList[3]))
        
         for i in range(0, int(sendSubList[3])):
             eachWordLen = __Len_Cstyle__(sendSubList[4+i])
@@ -106,12 +106,14 @@ class SubDB():
         data += subKOLenSpace
         data += sendSubList[2]
 
-        data += sendSubList[3]
-        data += '\0'
-        wordNumLenSpace = FillSpacePacket(str(sendSubList[3]).__len__(), 2)
-        data += wordNumLenSpace
+        #data += sendSubList[3]
+        #data += '\0'
+        #wordNumLenSpace = FillSpacePacket(str(sendSubList[3]).__len__(), 2)
+        #data += wordNumLenSpace
+        data2 = data
 
         for i in range(0, int(sendSubList[3])):
+            sendData = ''
             data += str(eachWordLenList[i])
             data += '\0'
             eachWordSpace = FillSpacePacket(str(eachWordLenList[i]).__len__(), 2)
@@ -119,25 +121,25 @@ class SubDB():
             data += sendSubList[4+i]
 
 
-        dataLen = __Len_Cstyle__(data) + 8
-        dataLen = str(dataLen)
-        dataLen += '\0'
-        dataLen += FillSpacePacket(dataLen.__len__(), 7)
-        sendData += dataLen
-        sendData += data
-        sendData = sendData.encode('cp949')
+            dataLen = __Len_Cstyle__(data) + 8
+            dataLen = str(dataLen)
+            dataLen += '\0'
+            dataLen += FillSpacePacket(dataLen.__len__(), 7)
+            sendData += dataLen
+            sendData += data
+            sendData = sendData.encode('cp949')
       
-        pprint.pprint (sendData.decode('cp949'))
+            pprint.pprint (sendData.decode('cp949'))
 
-        f = open('./smi/edit2.txt', 'a')
-        f.write(sendData.decode('cp949'))
-        f.write('\n\n')
-        f.close()
+            f = open('./smi/edit4.txt', 'a')
+            f.write(sendData.decode('cp949'))
+            f.write('\n\n')
+            f.close()
 
+            #pprint.pprint (sendSubList[0])
+            #s.sendall(sendData)
+            data = data2
 
-        #pprint.pprint (sendSubList[0])
-        s.sendall(sendData)
-        
     def sendURL(self, sendURLList):
         data = ''
         dataLen = ''
