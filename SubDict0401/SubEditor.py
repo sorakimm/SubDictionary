@@ -17,6 +17,7 @@ from konlpy.tag import Komoran
 from konlpy.tag import Twitter
 from nltk.tokenize import RegexpTokenizer
 from SubDB import *
+
 tokenizer = None
 tagger = None
 
@@ -38,8 +39,8 @@ def checkKREN(contents):
     fileList = []
     
     #contents = contents.decode('cp949')
-    pKRCC = re.compile(r'<P Class=KRCC>', re.IGNORECASE)
-    pENCC = re.compile(r'<P Class=ENCC>', re.IGNORECASE)
+    pKRCC = re.compile(r'<P Class=KR.*>', re.IGNORECASE)
+    pENCC = re.compile(r'<P Class=EN.*>', re.IGNORECASE)
     
     #print (contents)
     try:
@@ -58,9 +59,12 @@ def checkKREN(contents):
 def sortTXT(contentsList): 
     "smi파일내용 정렬"
     contents = contentsList[1][:]
-    contents = contents.decode('cp949')
+    print(type(contents))
+    
+    #contents = contents.decode('utf-8').encode('cp949', 'ignore').decode('cp949')
+    #contents = contents.decode('cp949', 'ignore')
     #contents = contentstemp
-    #print (contents)
+    print (type(contents))
     pStyle = re.compile('<br>', re.IGNORECASE | re.MULTILINE | re.DOTALL)
     contents = pStyle.sub(' ', contents)
     pStyle = re.compile('<font color=.*?>', re.IGNORECASE)
@@ -86,9 +90,9 @@ def sortTXT(contentsList):
     pStyle = re.compile('</i>', re.IGNORECASE | re.MULTILINE | re.DOTALL)
     contents = pStyle.sub('', contents)
     #print (contents)
-    pStyle = re.compile(r'<SYNC Start=\d+><P Class=KRCC>&nbsp;')
+    pStyle = re.compile(r'<SYNC Start=\d+><P Class=KR.*>&nbsp;')
     contents = pStyle.sub('', contents)
-    pStyle = re.compile(r'<SYNC Start=\d+><P Class=ENCC>&nbsp;')
+    pStyle = re.compile(r'<SYNC Start=\d+><P Class=EN.*>&nbsp;')
     contents = pStyle.sub('', contents)
 
     pStyle = re.compile(r'( \r\n{1}$\r\n)', re.IGNORECASE | re.MULTILINE | re.DOTALL)
@@ -116,8 +120,8 @@ def sortTXT(contentsList):
     contentsENTemp = []
     contentsKR = []
     contentsEN = []
-    pStyleKR = re.compile(r'<SYNC Start=(\d+)><P Class=KRCC>(.+?)<', re.IGNORECASE | re.MULTILINE | re.DOTALL)
-    pStyleEN = re.compile(r'<SYNC Start=(\d+)><P Class=ENCC>(.+?)<', re.IGNORECASE | re.MULTILINE | re.DOTALL)
+    pStyleKR = re.compile(r'<SYNC Start=(\d+)><P Class=KR.*?>(.+?)<', re.IGNORECASE | re.MULTILINE | re.DOTALL)
+    pStyleEN = re.compile(r'<SYNC Start=(\d+)><P Class=EN.*?>(.+?)<', re.IGNORECASE | re.MULTILINE | re.DOTALL)
     contentsKRTemp = pStyleKR.findall(contents)
     contentsENTemp = pStyleEN.findall(contents)
     
@@ -127,6 +131,10 @@ def sortTXT(contentsList):
     pTime = re.compile('[0-9]{2}\Z')
 
     for i in range(0, len(contentsKRTemp)):
+        print ("contentskrtemp")
+        #if(contentsKRTemp[i][1] == '  '):
+        #    continue;
+        #contentsKRTemp[i][1] = str(contentsKRTemp[i][1]).strip()
         contentsKR.append(list(contentsKRTemp[i]))
         contentsKR[i][0] = pTime.sub('', contentsKR[i][0])
         #smart_str(contentsKR[i][1])
@@ -197,7 +205,7 @@ def getKorNoun(body):#태그없앤 content에서 명사만 추출하기
     pSub = re.compile("sub_")
     for i in range(0, len(keywords)):
         keywords[i] = re.sub(keywords[i], "sub_"+str(keywords[i]), keywords[i])
-    keywords = list(set(keywords))
+    #keywords = list(set(keywords))
     print ("Keywords : ", keywords)
     return keywords
     

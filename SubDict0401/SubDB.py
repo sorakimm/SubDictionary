@@ -4,7 +4,7 @@ import re
 import pprint
 sType = dict(B_C_NOTIFY_SUBTITLE = '201', B_C_NOTIFY_SUBURL = '202', B_C_REQ_SUBURL = '203' , B_S_ANS_SUBURL = '204', B_C_REQ_WORD = '509', B_S_ANS_SUBTITLE = '504', B_S_ANS_COUNT = '503') # 패킷 타입
 sMode = dict(MODE_PAGE_URL = '1', MODE_TITLE_URL = '2') # URL 타입
-
+from C_Python_Socket import C_Python_Socket
 
 
 def FillSpacePacket(dataLen, index):
@@ -35,6 +35,7 @@ def __Len_Cstyle__(text):
       if isASCII(i):
          CLen += 1
       else: CLen += 2
+  
    return CLen
  
 class SubDB():
@@ -56,26 +57,32 @@ class SubDB():
         dataLen = ''
         sendData = ''
         eachWordLenList = []
+        subEnLen = 0
+        subKOLen = 0
+        wordNumLen = 0
         
         titleLen = __Len_Cstyle__(sendSubList[0])
+        
         subENLen = __Len_Cstyle__(sendSubList[1])
+        
         subKOLen = __Len_Cstyle__(sendSubList[2])
+        
         wordNumLen = __Len_Cstyle__(str(sendSubList[3]))
-       
-       
-        
-        
-        titleLen = __Len_Cstyle__(sendSubList[0])
-        subENLen = __Len_Cstyle__(sendSubList[1])
-        subKOLen = __Len_Cstyle__(sendSubList[2])
-        wordNumLen = __Len_Cstyle__(sendSubList[3])
        
         for i in range(0, int(sendSubList[3])):
             eachWordLen = __Len_Cstyle__(sendSubList[4+i])
             eachWordLenList.append(eachWordLen)
-            #eachWordLen[i] = str(eachWordLen[i])
-            
-            #print ("eachWordLen[", i, "] : ", eachWordLen[i])
+        
+
+        #wordTupleList = []
+        #titleTuple = (titleLen, sendSubList[0])
+        #subENTuple = (subENLen, sendSubList[1])
+        #subKOTuple = (subKOLen, sendSubList[2])
+        #wordNumTuple = (wordNumLen, str(sendSubList[3]))
+        #for i in range(0, wordNumLen):
+        #    wordTupleList.append((eachWordLenList[i], sendSubList[4+i]))
+        #sendSub = C_Python_Socket.generalSend(B_C_NOTIFY_SUBTITLE,)
+              
             
         
         data += sType['B_C_NOTIFY_SUBTITLE']
@@ -101,7 +108,7 @@ class SubDB():
 
         data += sendSubList[3]
         data += '\0'
-        wordNumLenSpace = FillSpacePacket(str(wordNumLen).__len__(), 2)
+        wordNumLenSpace = FillSpacePacket(str(sendSubList[3]).__len__(), 2)
         data += wordNumLenSpace
 
         for i in range(0, int(sendSubList[3])):
@@ -122,7 +129,7 @@ class SubDB():
       
         pprint.pprint (sendData.decode('cp949'))
         #pprint.pprint (sendSubList[0])
-        s.sendall(sendData)
+        #s.sendall(sendData)
         
     def sendURL(self, sendURLList):
         data = ''

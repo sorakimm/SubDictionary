@@ -13,6 +13,8 @@ from SubDB import SubDB
 import SubEditor
 import socket
 
+
+
 sType = dict(B_C_NOTIFY_SUBTITLE = '201', B_C_NOTIFY_SUBURL = '202', B_C_REQ_SUBURL = '203' , B_S_ANS_SUBURL = '204', B_C_REQ_WORD = '509', B_S_ANS_SUBTITLE = '504', B_S_ANS_COUNT = '503') # 패킷 타입
 
 crawler_name = 'smigle_crawler'
@@ -124,7 +126,13 @@ def getGomDownLink(url):
 
     #http://gom.gomtv.com/main/index.html/Femme.Fatales.S01E01.720p.HDTV.x264.smi?ch=subtitles&pt=down&intSeq=910618&capSeq=908517
     contents = res.read()
-       
+    try:
+        contents = contents.decode('utf-8').encode('cp949', 'ignore').decode('cp949')
+
+    except UnicodeDecodeError:
+        contents = contents.decode('cp949')
+    
+        
     contentsList.insert(0, fileName)
     contentsList.insert(1, contents)
     return contentsList
@@ -183,23 +191,26 @@ def contentsEditSend(contentsList):
                 sendTitle = pStyle.sub('', sendTitle)
                 pStyle = re.compile(r"무삭제", re.IGNORECASE)
                 sendTitle = pStyle.sub('', sendTitle)
-                pStyle = re.compile(r"BDRip", re.IGNORECASE)
+                pStyle = re.compile(r"BDRip.*", re.IGNORECASE)
+                sendTitle = pStyle.sub('', sendTitle)
+                pStyle = re.compile(r"dvdrip.*", re.IGNORECASE)
                 sendTitle = pStyle.sub('', sendTitle)
                 pStyle = re.compile(r"HD.*", re.IGNORECASE)
                 sendTitle = pStyle.sub('', sendTitle)
                 pStyle = re.compile(r"1080p.*", re.IGNORECASE)
                 sendTitle = pStyle.sub('', sendTitle)
-                pStyle = re.compile(r"[*.-/(/)/]", re.IGNORECASE)
-                sendTitle = pStyle.sub('', sendTitle)
+                pStyle = re.compile(r"[\[\*\-\/\(\)\]]", re.IGNORECASE)
+                sendTitle = pStyle.sub('_', sendTitle)
                 pStyle = re.compile(r" ", re.IGNORECASE)
                 sendTitle = pStyle.sub('', sendTitle)
                 pStyle = re.compile(r"\.", re.IGNORECASE)
-                sendTitle = pStyle.sub('', sendTitle)
+                sendTitle = pStyle.sub('_', sendTitle)
                 
                 print ("sendTitle: ", sendTitle)
                 sendEN = oneSortedSubList[j][1]
-           
+                sendEN = sendEN.strip()
                 sendKO = oneSortedSubList[j][2]
+                sendKO = sendKO.strip()
                 #print ("sendEN : ", sendEN)
                 sendENKeywords = SubEditor.getEngNoun(sendEN)
                 sendENKeywordsLen = len(sendENKeywords)
@@ -221,10 +232,11 @@ def contentsEditSend(contentsList):
                 for k in range(0, sendKOKeywordsLen):
                     sendSubList.insert(k+4+sendENKeywordsLen, sendKOKeywords[k])
                 
-                db.connect(HOST, PORT)
+                #db.connect(HOST, PORT)
                 print("sendSubtitle!")
                 db.sendSubtitle(sendSubList)
-                db.closesocket()
+                #db.closesocket()
+                time.sleep(0.1)
 
         else:
             print ("Wrong KREN SMI")
@@ -244,22 +256,27 @@ if __name__ == '__main__':
     lastBoardNum = 3
     print ("lastBoardNum : ", lastBoardNum)
     pageURLList = []
-    pageURLList = getGomAllBoardPageURL(lastBoardNum)
+    #pageURLList = getGomAllBoardPageURL(lastBoardNum)
      
-    getGomTitleLink(pageURLList)
+    #getGomTitleLink(pageURLList)
     
     titleList = []
-    while True:
-        db.connect(HOST, PORT)
-        db.reqURL() # titleURL 요청
-        titleURL = db.recvURL()
-        db.closesocket()
+    #while True:
+    #    db.connect(HOST, PORT)
+    #    db.reqURL() # titleURL 요청
+    #    titleURL = db.recvURL()
+    #    db.closesocket()
 
-        if(len(titleURL) == 0): # 가져온 titleURL의 길이가 0일 때 (받은 패킷의 URL 길이가 0이면 종료)
-            break;
-        titleList.append(titleURL)
-    
-    #titleList = ['http://gom.gomtv.com/main/index.html?ch=subtitles&pt=v&menu=subtitles&seq=910618&prepage=1&md5key=&md5skey=']
+    #    if(len(titleURL) == 0): # 가져온 titleURL의 길이가 0일 때 (받은 패킷의 URL 길이가 0이면 종료)
+    #        break;
+    #    titleList.append(titleURL)
+    titleList = [
+                 #'http://gom.gomtv.com/main/index.html?ch=subtitles&pt=v&menu=subtitles&seq=910913&prepage=1&md5key=&md5skey=',
+                 #'http://gom.gomtv.com/main/index.html?ch=subtitles&pt=v&menu=subtitles&seq=910903&prepage=1&md5key=&md5skey=',
+                 #'http://gom.gomtv.com/main/index.html?ch=subtitles&pt=v&menu=subtitles&seq=910882&prepage=1&md5key=&md5skey=',
+                 #'http://gom.gomtv.com/main/index.html?ch=subtitles&pt=v&menu=subtitles&seq=910844&prepage=1&md5key=&md5skey=',
+                 'http://gom.gomtv.com/main/index.html?ch=subtitles&pt=v&menu=subtitles&seq=910834&prepage=1&md5key=&md5skey='                 
+                 ]
     #print (titleList[0])
     
     for i in range(0, len(titleList)):
