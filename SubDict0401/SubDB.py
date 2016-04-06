@@ -5,7 +5,15 @@ import pprint
 sType = dict(B_C_NOTIFY_SUBTITLE = '201', B_C_NOTIFY_SUBURL = '202', B_C_REQ_SUBURL = '203' , B_S_ANS_SUBURL = '204', B_C_REQ_WORD = '509', B_S_ANS_SUBTITLE = '504', B_S_ANS_COUNT = '503') # 패킷 타입
 sMode = dict(MODE_PAGE_URL = '1', MODE_TITLE_URL = '2') # URL 타입
 from C_Python_Socket import C_Python_Socket
+import time
 
+##############################################################
+# SOCKET NETWORKING
+HOST = '192.168.0.185'                # The remote host
+#HOST = '127.0.0.1'
+PORT = 10000        # The same port as used by the server
+s = socket.socket()
+##############################################################
 
 def FillSpacePacket(dataLen, index):
     """패킷의 자릿수를 채워야 할때 공백(' ')으로 빈공간을 채워줌
@@ -53,6 +61,7 @@ class SubDB():
         s.close() 
 
     def sendSubtitle(self, sendSubList):
+        
         data = ''
         dataLen = ''
         sendData = ''
@@ -131,13 +140,22 @@ class SubDB():
       
             pprint.pprint (sendData.decode('cp949'))
 
-            f = open('./smi/edit4.txt', 'a')
+            f = open('./smi/edit6.txt', 'a')
             f.write(sendData.decode('cp949'))
             f.write('\n\n')
             f.close()
 
-            #pprint.pprint (sendSubList[0])
-            #s.sendall(sendData)
+            try:
+                #pprint.pprint (sendSubList[0])
+                self.connect(HOST, PORT)
+                time.sleep(0.5)
+                s.sendall(sendData)
+                #data = data2
+                self.closesocket()
+            except:
+                print("packet send error!")
+                pass
+
             data = data2
 
     def sendURL(self, sendURLList):
@@ -169,7 +187,7 @@ class SubDB():
         sendData += dataLen
         sendData += data
         sendData = sendData.encode('cp949')
-
+        
         #pprint.pprint (sendData)
         s.sendall(sendData)
         

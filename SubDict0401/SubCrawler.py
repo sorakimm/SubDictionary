@@ -12,7 +12,14 @@ import sys
 from SubDB import SubDB
 import SubEditor
 import socket
-
+import SubDB
+from SubDB import HOST, PORT, s
+###############################################################
+## SOCKET NETWORKING
+#HOST = '192.168.0.185'                # The remote host
+##HOST = '127.0.0.1'
+#PORT = 10000        # The same port as used by the server
+#s = socket.socket()
 
 
 sType = dict(B_C_NOTIFY_SUBTITLE = '201', B_C_NOTIFY_SUBURL = '202', B_C_REQ_SUBURL = '203' , B_S_ANS_SUBURL = '204', B_C_REQ_WORD = '509', B_S_ANS_SUBTITLE = '504', B_S_ANS_COUNT = '503') # 패킷 타입
@@ -30,13 +37,6 @@ temp_startPage = 1
 rp = robotparser.RobotFileParser(gom_mainPage + 'robots.txt')
 rp.read()
 
-##############################################################
-# SOCKET NETWORKING
-HOST = '192.168.0.185'                # The remote host
-#HOST = '127.0.0.1'
-PORT = 10000        # The same port as used by the server
-s = socket.socket()
-##############################################################
 
 
 def canFetch(self, url):
@@ -247,7 +247,7 @@ def contentsEditSend(contentsList):
                 for k in range(0, sendKOKeywordsLen):
                     sendSubList.insert(k+4+sendENKeywordsLen, sendKOKeywords[k])
                 
-                time.sleep(0.5)
+                #time.sleep(0.5)
                 #db.connect(HOST, PORT)
                 #print("sendSubtitle!")
                 if(len(sendSubList) == 0):
@@ -272,32 +272,32 @@ class AllStatesFetched(Exception):
 if __name__ == '__main__':
     print ('starting Gom Crawl.py...')
     lastBoardNum = getGomLastBoard(gom_mainBoardPage)
-    lastBoardNum = 3
-    print ("lastBoardNum : ", lastBoardNum)
+    #lastBoardNum = 1
+    #print ("lastBoardNum : ", lastBoardNum)
     pageURLList = []
     pageURLList = getGomAllBoardPageURL(lastBoardNum)
     titleList = []
      
-    #getGomTitleLink(pageURLList)
+    getGomTitleLink(pageURLList)
     
-    #while True:
-    #    time.sleep(0.5)
-    #    db.connect(HOST, PORT)
-    #    db.reqURL() # titleURL 요청
-    #    titleURL = db.recvURL()
-    #    db.closesocket()
+    while True:
+        time.sleep(0.5)
+        db.connect(HOST, PORT)
+        db.reqURL() # titleURL 요청
+        titleURL = db.recvURL()
+        db.closesocket()
 
-    #    if(len(titleURL) == 0): # 가져온 titleURL의 길이가 0일 때 (받은 패킷의 URL 길이가 0이면 종료)
-    #        break;
-    #    titleList.append(titleURL)
+        if(len(titleURL) == 0): # 가져온 titleURL의 길이가 0일 때 (받은 패킷의 URL 길이가 0이면 종료)
+            break;
+        titleList.append(titleURL)
 
-    titleList = [
-                  'http://gom.gomtv.com/main/index.html?ch=subtitles&pt=v&menu=subtitles&seq=910913&prepage=1&md5key=&md5skey=',
+    #titleList = [
+                 #'http://gom.gomtv.com/main/index.html?ch=subtitles&pt=v&menu=subtitles&seq=910913&prepage=1&md5key=&md5skey=',
                  #'http://gom.gomtv.com/main/index.html?ch=subtitles&pt=v&menu=subtitles&seq=910903&prepage=1&md5key=&md5skey=',
                  #'http://gom.gomtv.com/main/index.html?ch=subtitles&pt=v&menu=subtitles&seq=910882&prepage=1&md5key=&md5skey=',
                  #'http://gom.gomtv.com/main/index.html?ch=subtitles&pt=v&menu=subtitles&seq=910844&prepage=1&md5key=&md5skey=',
                 # 'http://gom.gomtv.com/main/index.html?ch=subtitles&pt=v&menu=subtitles&seq=910834&prepage=1&md5key=&md5skey='                 
-                ]
+                #]
     #print (titleList[0])
     #titleList = ['http://gom.gomtv.com/main/index.html?ch=subtitles&pt=v&menu=subtitles&seq=911016&prepage=1&md5key=&md5skey=']
     for i in range(0, len(titleList)):
